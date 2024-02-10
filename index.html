@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title> Hello web audio </title>
+    <style>
+      body {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          height: 100vh;
+          margin: 0;
+      }
+  </style>
+</head>
+
+
+<body>
+    <p id="description">Press a button on the keyboard to play that note.</p>
+    <br>
+    <div id="buttonContainer"></div>
+    <span id="waveformText">Waveform: </span>
+<select id="waveform">
+  <option value="sine">Sine</option>
+  <option value="square">Square</option>
+  <option value="sawtooth" selected="selected">Sawtooth</option>
+  <option value="triangle">Triangle</option>
+</select>
+<select id="synthesis">
+  <option value="additive">Additive</option>
+  <option value="am">AM</option>
+  <option value="fm" selected="selected">FM</option>
+</select>
+</body>
+
+<br>
+<script src="main.js"> </script>
+
+</html>
+
