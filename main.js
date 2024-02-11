@@ -2,7 +2,7 @@ document.addEventListener("DOMContentLoaded", function(event) {
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
     const globalGain = audioCtx.createGain(); 
-    globalGain.gain.setValueAtTime(0.8, audioCtx.currentTime)
+    globalGain.gain.setValueAtTime(1, audioCtx.currentTime)
     globalGain.connect(audioCtx.destination);
     let totalGain = 0;
 
@@ -63,6 +63,7 @@ document.addEventListener("DOMContentLoaded", function(event) {
                 keyUpAMSynthesis(event);
               break;
             case "fm":
+                keyUpFMSynthesis(event);
               break;
             default:
                 keyUpAdditiveSynthesis(event);
@@ -76,6 +77,7 @@ document.addEventListener("DOMContentLoaded", function(event) {
                 playAMSynthesis(key);
               break;
             case "fm":
+                playFMSynthesis(key);
               break;
             default:
                 playAdditiveSynthesis(key);
@@ -154,7 +156,7 @@ document.addEventListener("DOMContentLoaded", function(event) {
     
         modulatorFreq.connect(depth).connect(modulated.gain); //.connect is additive, so with [-0.5,0.5] and 0.5, the modulated signal now has output gain at [0,1]
         carrier.connect(modulated)
-        modulated.connect(audioCtx.destination);
+        modulated.connect(globalGain);
         
         carrier.start();
         modulatorFreq.start();
@@ -192,6 +194,65 @@ document.addEventListener("DOMContentLoaded", function(event) {
             modulated.gain.setTargetAtTime(0, audioCtx.currentTime + .2, 0.1);
         }
     }
+
+    function playFMSynthesis(key) {
+        var carrier = audioCtx.createOscillator();
+        var modulatorFreq = audioCtx.createOscillator();
+        modulatorFreq.frequency.value = 100;
+        carrier.frequency.setValueAtTime(keyboardFrequencyMap[key], audioCtx.currentTime);
+        carrier.type = waveform;
+
+        const carrierGain = audioCtx.createGain(); // Create a gain node for carrier gain
+        carrierGain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+    
+        modulationIndex = audioCtx.createGain();
+        modulationIndex.gain.setValueAtTime(100, audioCtx.currentTime);
+        modulatorFreq.frequency.value = 100;
+    
+        modulatorFreq.connect(modulationIndex);
+        modulationIndex.connect(carrier.frequency);
+    
+        carrier.connect(carrierGain); // Connect carrier oscillator to carrier gain node
+        carrierGain.connect(globalGain); // Connect carrier gain node to global gain
+        carrier.start();
+        modulatorFreq.start();
+    
+        activeOscillators[key] = [carrier, modulatorFreq, carrierGain, modulationIndex]
+
+        totalGain += modulationIndex.gain.value;
+        if (totalGain < 1) {
+            globalGain.gain.setValueAtTime(1, audioCtx.currentTime);
+        } else {
+            globalGain.gain.setValueAtTime(1 / totalGain, audioCtx.currentTime);
+    }
+    }
+
+    function keyUpFMSynthesis(event) {
+        const key = (event.detail || event.which).toString();
+        if (keyboardFrequencyMap[key] && activeOscillators[key]) {
+            const carrier = activeOscillators[key][0];
+            const modulatorFreq = activeOscillators[key][1];
+            const carrierGain = activeOscillators[key][2];
+            const modulationIndex = activeOscillators[key][3];
+    
+            delete activeOscillators[key];
+    
+            // Recalculate total gain excluding the modulation index gain
+            totalGain -= modulationIndex.gain.value + carrierGain.gain.value;
+    
+            // Update global gain based on total gain
+            if (totalGain < 1) {
+                globalGain.gain.setValueAtTime(1, audioCtx.currentTime);
+            } else {
+                globalGain.gain.setValueAtTime(1 / totalGain, audioCtx.currentTime);
+            }
+    
+            // Release modulation index gain
+            carrierGain.gain.setTargetAtTime(0, audioCtx.currentTime + .2, 0.1);
+            modulationIndex.gain.setTargetAtTime(0, audioCtx.currentTime + .2, 0.1);
+        }
+    }
+
 
 
 });
