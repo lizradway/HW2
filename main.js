@@ -60,6 +60,7 @@ document.addEventListener("DOMContentLoaded", function(event) {
     function keyUp(event) {
         switch(synthesis) {
             case "am":
+                keyUpAMSynthesis(event);
               break;
             case "fm":
               break;
@@ -157,6 +158,40 @@ document.addEventListener("DOMContentLoaded", function(event) {
         
         carrier.start();
         modulatorFreq.start();
+
+        activeOscillators[key] = [carrier, modulatorFreq, depth, modulated]
+        const depthValue = depth.gain.value;
+        const modulatedValue = modulated.gain.value;
+
+        totalGain += depthValue + modulatedValue;
+        if (totalGain < 1) {
+            globalGain.gain.setValueAtTime(1, audioCtx.currentTime);
+        } else {
+            globalGain.gain.setValueAtTime(1 / totalGain, audioCtx.currentTime);
     }
+    }
+
+    function keyUpAMSynthesis(event) {
+        const key = (event.detail || event.which).toString();
+        if (keyboardFrequencyMap[key] && activeOscillators[key]) {
+            const carrier = activeOscillators[key][0];
+            const modulatorFreq = activeOscillators[key][1];
+            const depth = activeOscillators[key][2];
+            const modulated = activeOscillators[key][3];
+            delete activeOscillators[key];
+
+            const depthValue = depth.gain.value;
+            const modulatedValue = modulated.gain.value;
+            totalGain -= depthValue + modulatedValue;
+            if (totalGain < 1) {
+                globalGain.gain.setValueAtTime(1, audioCtx.currentTime);
+            } else {
+                globalGain.gain.setValueAtTime(1 / totalGain, audioCtx.currentTime);
+            }
+            depth.gain.setTargetAtTime(0, audioCtx.currentTime + .2, 0.1);
+            modulated.gain.setTargetAtTime(0, audioCtx.currentTime + .2, 0.1);
+        }
+    }
+
 
 });
