@@ -143,7 +143,7 @@ document.addEventListener("DOMContentLoaded", function(event) {
     function playAMSynthesis(key) {
         var carrier = audioCtx.createOscillator();
         var modulatorFreq = audioCtx.createOscillator();
-        modulatorFreq.frequency.value = 100;
+        modulatorFreq.frequency.value = modulationFrequency;
 
         carrier.frequency.setValueAtTime(keyboardFrequencyMap[key], audioCtx.currentTime);
         carrier.type = waveform;
@@ -197,7 +197,7 @@ document.addEventListener("DOMContentLoaded", function(event) {
     function playFMSynthesis(key) {
         var carrier = audioCtx.createOscillator();
         var modulatorFreq = audioCtx.createOscillator();
-        modulatorFreq.frequency.value = 100;
+        modulatorFreq.frequency.value = modulationFrequency;
         carrier.frequency.setValueAtTime(keyboardFrequencyMap[key], audioCtx.currentTime);
         carrier.type = waveform;
 
@@ -206,7 +206,6 @@ document.addEventListener("DOMContentLoaded", function(event) {
     
         modulationIndex = audioCtx.createGain();
         modulationIndex.gain.setValueAtTime(100, audioCtx.currentTime);
-        modulatorFreq.frequency.value = 100;
     
         modulatorFreq.connect(modulationIndex);
         modulationIndex.connect(carrier.frequency);
@@ -263,24 +262,34 @@ function updateCheckbox() {
   }
 
 
+
+  let modulationFrequency = 100;
+  const modulationFreqOption = document.getElementById('modulationFreqOption');
+  modulationFreqOption.addEventListener('change', function(event) {
+    modulationFrequency = event.target.value;
+    });
+
+  let useLFO = false;
+  const lfoOption = document.getElementById('lfoOption');
+  lfoOption.addEventListener('change', function(event) {
+      useLFO = event.target.value;
+    });
+
   const waveformSelect = document.getElementById('waveform')
   let waveform = 'sine'
   waveformSelect.addEventListener('change', function(event) {
     waveform = event.target.value
   });
+
   const synthesisSelect = document.getElementById('synthesis')
   let synthesis = 'additive'
-  let useLFO = false;
-  const lfoOption = document.getElementById('lfoOption');
-  lfoOption.addEventListener('change', function(event) {
-      useLFO = event.target.value;
-      console.log(useLFO);
-    });
   synthesisSelect.addEventListener('change', function(event) {
     synthesis = event.target.value
     if (synthesisSelect.value === 'additive') {
       lfoOption.style.display = 'block';
+      modulationFreqOption.style.display ='none';
   } else {
       lfoOption.style.display = 'none';
+      modulationFreqOption.style.display ='block';
   }
   });
