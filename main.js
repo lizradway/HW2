@@ -41,6 +41,7 @@ document.addEventListener("DOMContentLoaded", function(event) {
     function keyDown(event) {
         const key = (event.detail || event.which).toString();
         if (keyboardFrequencyMap[key] && !activeOscillators[key]) {
+            displayNoteOnScreen();
             playNote(key, "hi");
         }
     }
@@ -76,9 +77,10 @@ document.addEventListener("DOMContentLoaded", function(event) {
       function playAdditiveSynthesis(key) {
         var oscillators = [];
         var gains = [];
-        for (var i = 1; i <= 5; i++) {
+        console.log(oscNum);
+        for (var i = 1; i <= oscNum; i++) {
             var osc = audioCtx.createOscillator();
-            const multiplier = i < 3 ? -15 : 15;
+            const multiplier = i % 2 == 0 ? -15 : 15;
             osc.frequency.setValueAtTime(keyboardFrequencyMap[key], audioCtx.currentTime);
             osc.type = waveform;
             const gainNode = audioCtx.createGain();
@@ -266,8 +268,18 @@ function updateCheckbox() {
   let modulationFrequency = 100;
   const modulationFreqOption = document.getElementById('modulationFreqOption');
   modulationFreqOption.addEventListener('change', function(event) {
-    modulationFrequency = event.target.value;
+    if (event.target.value > 0 && event.target.value < 400) {
+        modulationFrequency = event.target.value;
+    }
     });
+
+    let oscNum = 5;
+    const oscOption = document.getElementById('oscOption');
+    oscOption.addEventListener('change', function(event) {
+      if (event.target.value >= 1 && event.target.value < 11) {
+        oscNum = event.target.value;
+      }
+      });
 
   let useLFO = false;
   const lfoOption = document.getElementById('lfoOption');
@@ -287,9 +299,39 @@ function updateCheckbox() {
     synthesis = event.target.value
     if (synthesisSelect.value === 'additive') {
       lfoOption.style.display = 'block';
+      oscOption.style.display = 'block';
       modulationFreqOption.style.display ='none';
   } else {
       lfoOption.style.display = 'none';
+      oscOption.style.display = 'none';
       modulationFreqOption.style.display ='block';
   }
   });
+
+
+  function displayNoteOnScreen() {
+    const noteContainer = document.getElementById('noteContainer');
+    const noteElement = document.createElement('div');
+    noteElement.classList.add('note');
+    const noteImage = document.createElement('img');
+    
+    const seed = Math.random();
+    if (seed > 0.66) {
+        noteImage.src = 'note.png';
+    } else if (seed > 0.33) {
+        noteImage.src = 'note2.png';
+    } else {
+        noteImage.src = 'wholenote.png';
+    }
+
+    noteImage.style.width = '100%'; // Adjust if necessary
+    noteImage.style.height = '100%'; // Adjust if necessary
+    noteElement.appendChild(noteImage);
+    noteElement.style.left = Math.random() * (window.innerWidth - 100) + 'px'; // Random left position
+    noteElement.style.top = Math.random() * (window.innerHeight - 100) + 'px'; // Random top position
+    noteContainer.appendChild(noteElement);
+    // Remove the note after a certain duration (e.g., 1 second)
+    setTimeout(() => {
+        noteContainer.removeChild(noteElement);
+    }, 1000);
+}
