@@ -42,7 +42,7 @@ document.addEventListener("DOMContentLoaded", function(event) {
         const key = (event.detail || event.which).toString();
         if (keyboardFrequencyMap[key] && !activeOscillators[key]) {
             displayNoteOnScreen();
-            playNote(key, "hi");
+            playNote(key);
         }
     }
 
@@ -236,26 +236,58 @@ document.addEventListener("DOMContentLoaded", function(event) {
             const modulationIndex = activeOscillators[key][3];
     
             delete activeOscillators[key];
-    
-            // Recalculate total gain excluding the modulation index gain
             totalGain -= modulationIndex.gain.value + carrierGain.gain.value;
     
-            // Update global gain based on total gain
             if (totalGain < 1) {
                 globalGain.gain.setValueAtTime(1, audioCtx.currentTime);
             } else {
                 globalGain.gain.setValueAtTime(1 / totalGain, audioCtx.currentTime);
             }
     
-            // Release modulation index gain
             carrierGain.gain.setTargetAtTime(0, audioCtx.currentTime + .2, 0.1);
             modulationIndex.gain.setTargetAtTime(0, audioCtx.currentTime + .2, 0.1);
         }
     }
 
 
+    async function playJingleBells() { 
+        playNoteForOneSecond('67');
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        playNoteForOneSecond('67');
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        playNoteForOneSecond('67');
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        playNoteForOneSecond('67');
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        playNoteForOneSecond('67');
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        playNoteForOneSecond('67');
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        playNoteForOneSecond('67');
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        playNoteForOneSecond('84');
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        playNoteForOneSecond('90');
+        await new Promise(resolve => setTimeout(resolve, 1500));
+        playNoteForOneSecond('88');
+        await new Promise(resolve => setTimeout(resolve, 500));
+        playNoteForOneSecond('67');
+    }
+    
+    function playNoteForOneSecond(key) {
+    keyDown({detail: key});
+    setTimeout(() => {
+    keyUp({detail: key});
+    }, 500);
+    }
+
+    const jingleBellsButton = document.getElementById('jingleBellsButton');
+    if (jingleBellsButton) {
+        jingleBellsButton.addEventListener('click', playJingleBells);
+    }
 
 });
+
 
 
 function updateCheckbox() {
@@ -314,7 +346,7 @@ function updateCheckbox() {
     const noteElement = document.createElement('div');
     noteElement.classList.add('note');
     const noteImage = document.createElement('img');
-    
+
     const seed = Math.random();
     if (seed > 0.66) {
         noteImage.src = 'note.png';
@@ -324,13 +356,12 @@ function updateCheckbox() {
         noteImage.src = 'wholenote.png';
     }
 
-    noteImage.style.width = '100%'; // Adjust if necessary
-    noteImage.style.height = '100%'; // Adjust if necessary
+    noteImage.style.width = '100%';
+    noteImage.style.height = '100%';
     noteElement.appendChild(noteImage);
     noteElement.style.left = Math.random() * (window.innerWidth - 100) + 'px'; // Random left position
     noteElement.style.top = Math.random() * (window.innerHeight - 100) + 'px'; // Random top position
     noteContainer.appendChild(noteElement);
-    // Remove the note after a certain duration (e.g., 1 second)
     setTimeout(() => {
         noteContainer.removeChild(noteElement);
     }, 1000);
