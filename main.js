@@ -38,18 +38,6 @@ document.addEventListener("DOMContentLoaded", function(event) {
 
     activeOscillators = {}
 
-    const waveformSelect = document.getElementById('waveform')
-    let waveform = 'sine'
-    waveformSelect.addEventListener('change', function(event) {
-      waveform = event.target.value
-    });
-
-    const synthesisSelect = document.getElementById('synthesis')
-    let synthesis = 'additive'
-    synthesisSelect.addEventListener('change', function(event) {
-      synthesis = event.target.value
-    });
-
     function keyDown(event) {
         const key = (event.detail || event.which).toString();
         if (keyboardFrequencyMap[key] && !activeOscillators[key]) {
@@ -102,6 +90,17 @@ document.addEventListener("DOMContentLoaded", function(event) {
             gains.push(gainNode);
 
             osc.start();
+
+            if (useLFO == "checked") {
+                var lfo = audioCtx.createOscillator();
+                lfo.frequency.value = 0.5;
+                lfoGain = audioCtx.createGain();
+                lfoGain.gain.value = 8;
+                lfo.connect(lfoGain).connect(osc.frequency);
+                lfo.start();
+            }
+    
+
             activeOscillators[key] = [oscillators, gains]
             const gainValue = gainNode.gain.value;
             totalGain += gainValue;
@@ -256,3 +255,32 @@ document.addEventListener("DOMContentLoaded", function(event) {
 
 
 });
+
+
+function updateCheckbox() {
+    var checkbox = document.getElementById("lfoCheckbox");
+    checkbox.value = checkbox.checked ? "checked" : "unchecked";
+  }
+
+
+  const waveformSelect = document.getElementById('waveform')
+  let waveform = 'sine'
+  waveformSelect.addEventListener('change', function(event) {
+    waveform = event.target.value
+  });
+  const synthesisSelect = document.getElementById('synthesis')
+  let synthesis = 'additive'
+  let useLFO = false;
+  const lfoOption = document.getElementById('lfoOption');
+  lfoOption.addEventListener('change', function(event) {
+      useLFO = event.target.value;
+      console.log(useLFO);
+    });
+  synthesisSelect.addEventListener('change', function(event) {
+    synthesis = event.target.value
+    if (synthesisSelect.value === 'additive') {
+      lfoOption.style.display = 'block';
+  } else {
+      lfoOption.style.display = 'none';
+  }
+  });
